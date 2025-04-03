@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Tomato Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+      @font-face {
+        font-family: 'LucideIcons';
+        /* Updated CDN link for Lucide font */
+        src: url(https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf) format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.5rem; /* Adjust icon size as needed */
+        line-height: 1;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      /* Custom styles */
+      body {
+        font-family: 'Press Start 2P', cursive;
+        overflow: hidden; /* Prevent scrolling */
+      }
+      /* Style for the overlay */
+      .timer-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw; /* Cover full viewport width */
+        height: 100vh; /* Cover full viewport height */
+        background-color: rgba(239, 68, 68, 0.85); /* Semi-transparent tomato red (bg-red-500 with opacity) */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* Ensure it's on top */
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Text shadow for readability */
+        padding: 1rem; /* Reduced padding slightly for smaller screens */
+        box-sizing: border-box;
+      }
+      /* Stem element */
+      .stem {
+        position: absolute;
+        top: -15px; /* Adjusted position */
+        width: 50px; /* Adjusted size */
+        height: 30px; /* Adjusted size */
+        background-color: #22c55e; /* Green color (bg-green-500) */
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0; /* Stem shape */
+        transform: rotate(-15deg); /* Slight tilt */
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+       /* Button styling */
+      .control-button {
+        background-color: rgba(255, 255, 255, 0.2); /* Slightly transparent white */
+        border: 2px solid white;
+        color: white;
+        padding: 0.5rem 1rem; /* Adjusted padding py-2 px-4 */
+        margin: 0 0.25rem; /* Adjusted margin mx-1 */
+        border-radius: 0.5rem; /* rounded-lg */
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.1s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+        font-size: 0.8rem; /* Slightly smaller font for buttons */
+      }
+      .control-button:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+       .control-button:active {
+        transform: scale(0.95);
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+      }
+      /* Message box styling */
+      #message-box {
+          position: fixed;
+          top: 15px; /* Adjusted position */
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: rgba(0, 0, 0, 0.7);
+          color: white;
+          padding: 8px 15px; /* Adjusted padding */
+          border-radius: 5px;
+          z-index: 10000; /* Above the overlay */
+          display: none; /* Hidden by default */
+          font-size: 0.8rem; /* Adjusted font size */
+          text-shadow: none;
+      }
+      /* Settings Input Styling */
+      .settings-container {
+          margin-top: 1.5rem; /* mt-6 */
+          background-color: rgba(0, 0, 0, 0.1); /* Subtle background */
+          padding: 1rem; /* p-4 */
+          border-radius: 0.5rem; /* rounded-lg */
+          display: flex;
+          flex-wrap: wrap; /* Allow wrapping on small screens */
+          justify-content: center;
+          align-items: center;
+          gap: 0.75rem; /* gap-3 */
+          font-size: 0.75rem; /* Smaller font for settings */
+          max-width: 90%;
+      }
+      .settings-container label {
+          margin-right: 0.25rem; /* mr-1 */
+          text-shadow: none; /* Remove shadow for labels */
+          white-space: nowrap; /* Prevent label wrapping */
+      }
+      .settings-container input[type="number"] {
+          width: 4rem; /* w-16 */
+          padding: 0.25rem 0.5rem; /* py-1 px-2 */
+          border-radius: 0.25rem; /* rounded */
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          background-color: rgba(255, 255, 255, 0.1);
+          color: white;
+          text-align: center;
+          font-family: 'Press Start 2P', cursive; /* Ensure font consistency */
+          font-size: 0.75rem;
+          /* Hide spinner buttons for number input */
+          -moz-appearance: textfield;
+      }
+      .settings-container input[type="number"]::-webkit-outer-spin-button,
+      .settings-container input[type="number"]::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+      }
+       .settings-container .set-button {
+           /* Inherit from control-button but maybe smaller */
+           padding: 0.4rem 0.8rem;
+           font-size: 0.7rem;
+       }
+
+    </style>
+</head>
+<body>
+    <div id="timer-overlay" class="timer-overlay">
+        <div class="stem"></div>
+
+        <h1 id="timer-status" class="text-2xl md:text-3xl mb-3">Work Time</h1>
+
+        <div id="time-display" class="text-5xl md:text-7xl lg:text-8xl font-bold mb-6">
+            25:00
+        </div>
+
+        <div class="controls flex justify-center items-center mb-4">
+            <button id="start-pause" class="control-button" aria-label="Start Timer">
+                <span class="lucide" data-lucide="play">play</span>
+            </button>
+            <button id="reset" class="control-button" aria-label="Reset Timer">
+                <span class="lucide" data-lucide="rotate-cw">rotate-cw</span>
+            </button>
+             <button id="toggle-sound" class="control-button" aria-label="Toggle Sound">
+                <span id="sound-icon" class="lucide" data-lucide="volume-2">volume-2</span>
+            </button>
+        </div>
+
+        <div id="cycle-count" class="text-base mb-4">
+            Cycles completed: 0
+        </div>
+
+        <div class="settings-container">
+             <label for="work-duration">Work (min):</label>
+             <input type="number" id="work-duration" min="1" value="25">
+
+             <label for="short-break-duration">Short Break (min):</label>
+             <input type="number" id="short-break-duration" min="1" value="5">
+
+             <label for="long-break-duration">Long Break (min):</label>
+             <input type="number" id="long-break-duration" min="1" value="15">
+
+             <button id="set-times" class="control-button set-button" aria-label="Set Timer Durations">Set</button>
+        </div>
+    </div>
+
+     <div id="message-box">Timer finished!</div>
+
+    <script>
+        // --- DOM Elements ---
+        const timeDisplay = document.getElementById('time-display');
+        const timerStatus = document.getElementById('timer-status');
+        const startPauseButton = document.getElementById('start-pause');
+        const resetButton = document.getElementById('reset');
+        const cycleCountDisplay = document.getElementById('cycle-count');
+        const startPauseIcon = startPauseButton.querySelector('.lucide');
+        const toggleSoundButton = document.getElementById('toggle-sound');
+        const soundIcon = document.getElementById('sound-icon');
+        const messageBox = document.getElementById('message-box');
+        // New Settings Elements
+        const workDurationInput = document.getElementById('work-duration');
+        const shortBreakDurationInput = document.getElementById('short-break-duration');
+        const longBreakDurationInput = document.getElementById('long-break-duration');
+        const setTimesButton = document.getElementById('set-times');
+
+
+        // --- Timer State ---
+        let timerInterval = null; // Holds the interval ID
+        let totalSeconds = 25 * 60; // Initial work time in seconds (will be updated)
+        let isRunning = false;
+        let isWorkTime = true; // Tracks if it's work or break time
+        let cyclesCompleted = 0;
+        let soundEnabled = true; // Sound is on by default
+
+        // --- Timer Settings (in minutes) ---
+        // Use 'let' so they can be changed
+        let workDuration = 25;
+        let shortBreakDuration = 5;
+        let longBreakDuration = 15;
+        const CYCLES_BEFORE_LONG_BREAK = 4; // This could also be made adjustable
+
+        // --- Sound Synthesis (using Tone.js) ---
+        let synth = null; // Initialize synth later to ensure user interaction
+
+        // Function to initialize the synth (requires user interaction)
+        function initializeSynth() {
+            // Guard against multiple initializations or errors
+            if (synth || typeof Tone === 'undefined') return;
+            // Start audio context if needed
+            if (Tone.context.state !== 'running') {
+                 // Use a try-catch block for Tone.start() as it might fail
+                 // depending on browser policies (requires user gesture)
+                 try {
+                    Tone.start();
+                 } catch (e) {
+                     console.warn("Tone.start() failed, likely needs user interaction first.", e);
+                     // Optionally inform the user they need to interact (e.g., click)
+                     // showMessage("Click screen to enable audio"); // Example message
+                     return; // Don't proceed if context isn't running
+                 }
+            }
+            // Create the synth only if context is running
+             if (Tone.context.state === 'running') {
+                synth = new Tone.Synth({
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
+                }).toDestination();
+             } else {
+                 console.warn("Audio context not running, synth not created.");
+             }
+        }
+
+
+        // Function to play notification sound
+        function playNotificationSound() {
+            // Ensure synth is initialized and sound is enabled
+            if (soundEnabled && synth && Tone.context.state === 'running') {
+                try {
+                    // Play a simple C4 note, ensure Tone.now() is used correctly
+                    synth.triggerAttackRelease("C4", "8n", Tone.now());
+                    // Schedule the second note relative to the current time
+                    setTimeout(() => {
+                         // Check synth again in case something changed
+                         if (synth && Tone.context.state === 'running') {
+                            synth.triggerAttackRelease("G4", "8n", Tone.now() + 0.2);
+                         }
+                    }, 200); // Delay in ms
+                } catch (error) {
+                    console.error("Error playing sound:", error);
+                    // Fallback or just log the error
+                }
+            } else if (soundEnabled && !synth) {
+                console.warn("Sound enabled, but synth not initialized or audio context not running.");
+                // Attempt to initialize synth again, might work if user interacted since last attempt
+                initializeSynth();
+            }
+        }
+
+        // --- Utility Functions ---
+
+        // Format seconds into MM:SS format
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        // Update the time display on the page
+        function updateDisplay() {
+            timeDisplay.textContent = formatTime(totalSeconds);
+        }
+
+        // Show a temporary message
+        function showMessage(message) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            // Clear previous timeout if any
+            if (messageBox.timeoutId) {
+                clearTimeout(messageBox.timeoutId);
+            }
+            messageBox.timeoutId = setTimeout(() => {
+                messageBox.style.display = 'none';
+                messageBox.timeoutId = null; // Clear the stored ID
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- Timer Logic ---
+
+        // Function called every second when the timer is running
+        function tick() {
+            if (totalSeconds <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                isRunning = false;
+                playNotificationSound(); // Play sound when timer ends
+                switchSession();
+            } else {
+                totalSeconds--;
+                updateDisplay();
+            }
+        }
+
+        // Switch between work and break sessions
+        function switchSession() {
+            isWorkTime = !isWorkTime; // Toggle the state
+
+            if (isWorkTime) {
+                // Starting a new work session
+                cyclesCompleted++;
+                cycleCountDisplay.textContent = `Cycles completed: ${cyclesCompleted}`;
+                timerStatus.textContent = "Work Time";
+                totalSeconds = workDuration * 60; // Use updated duration
+                showMessage("Work session started!");
+            } else {
+                // Starting a break session
+                if (cyclesCompleted > 0 && cyclesCompleted % CYCLES_BEFORE_LONG_BREAK === 0) {
+                    timerStatus.textContent = "Long Break";
+                    totalSeconds = longBreakDuration * 60; // Use updated duration
+                     showMessage("Time for a long break!");
+                } else {
+                    timerStatus.textContent = "Short Break";
+                    totalSeconds = shortBreakDuration * 60; // Use updated duration
+                     showMessage("Time for a short break!");
+                }
+            }
+
+            updateDisplay();
+            // Automatically start the next session's timer if it was running before switching
+             // Let's change this: Don't automatically start, require user action.
+             pauseTimer(); // Ensure timer is paused after switching
+             // Update button to 'play' as the new session needs starting
+             startPauseIcon.setAttribute('data-lucide', 'play');
+             startPauseButton.setAttribute('aria-label', 'Start Timer');
+
+             // Instead of auto-starting:
+             // startTimer(); // Removed this line
+        }
+
+        // Start the timer
+        function startTimer() {
+            if (!isRunning) {
+                initializeSynth(); // Ensure synth is ready on first start/interaction
+                isRunning = true;
+                startPauseIcon.setAttribute('data-lucide', 'pause'); // Change icon to pause
+                startPauseButton.setAttribute('aria-label', 'Pause Timer');
+                // Use try-catch for setInterval just in case
+                try {
+                    // Clear any existing interval before starting a new one
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(tick, 1000);
+                } catch (error) {
+                    console.error("Failed to start timer interval:", error);
+                    isRunning = false; // Reset state if interval fails
+                    startPauseIcon.setAttribute('data-lucide', 'play');
+                    startPauseButton.setAttribute('aria-label', 'Start Timer');
+                }
+            }
+        }
+
+        // Pause the timer
+        function pauseTimer() {
+            if (isRunning || timerInterval) { // Check interval too
+                isRunning = false;
+                clearInterval(timerInterval);
+                timerInterval = null;
+                startPauseIcon.setAttribute('data-lucide', 'play'); // Change icon to play
+                startPauseButton.setAttribute('aria-label', 'Start Timer');
+            }
+        }
+
+        // Reset the timer to the beginning of the current session type using current durations
+        function resetTimer() {
+            pauseTimer(); // Stop the timer first
+            if (isWorkTime) {
+                totalSeconds = workDuration * 60; // Use current work duration
+                timerStatus.textContent = "Work Time";
+            } else {
+                // Reset to the appropriate break time based on completed cycles & current durations
+                 if (cyclesCompleted > 0 && cyclesCompleted % CYCLES_BEFORE_LONG_BREAK === 0) {
+                    timerStatus.textContent = "Long Break";
+                    totalSeconds = longBreakDuration * 60; // Use current long break duration
+                } else {
+                    timerStatus.textContent = "Short Break";
+                    totalSeconds = shortBreakDuration * 60; // Use current short break duration
+                }
+            }
+            // Resetting does not reset the cycle count by default.
+            updateDisplay();
+        }
+
+        // Apply new timer durations from input fields
+        function applyNewTimes() {
+            // Read values and convert to numbers, provide fallback if invalid
+            const newWork = parseInt(workDurationInput.value, 10);
+            const newShort = parseInt(shortBreakDurationInput.value, 10);
+            const newLong = parseInt(longBreakDurationInput.value, 10);
+
+            // Basic validation (must be positive numbers)
+            if (isNaN(newWork) || newWork < 1 ||
+                isNaN(newShort) || newShort < 1 ||
+                isNaN(newLong) || newLong < 1) {
+                showMessage("Error: Durations must be positive numbers.");
+                // Reset inputs to current valid values
+                workDurationInput.value = workDuration;
+                shortBreakDurationInput.value = shortBreakDuration;
+                longBreakDurationInput.value = longBreakDuration;
+                return; // Stop execution if validation fails
+            }
+
+            // Update the duration variables
+            workDuration = newWork;
+            shortBreakDuration = newShort;
+            longBreakDuration = newLong;
+
+            showMessage("Timer durations updated!");
+
+            // Reset the current timer to reflect the new duration immediately
+            resetTimer();
+        }
+
+
+        // Toggle sound on/off
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                soundIcon.setAttribute('data-lucide', 'volume-2'); // Icon for sound on
+                toggleSoundButton.setAttribute('aria-label', 'Mute Sound');
+                 showMessage("Sound enabled");
+                 initializeSynth(); // Make sure synth is ready if re-enabled
+            } else {
+                soundIcon.setAttribute('data-lucide', 'volume-x'); // Icon for sound off
+                toggleSoundButton.setAttribute('aria-label', 'Unmute Sound');
+                 showMessage("Sound muted");
+            }
+        }
+
+        // --- Event Listeners ---
+        startPauseButton.addEventListener('click', () => {
+            // Attempt to initialize audio context on first click if not already running
+            if (!synth && Tone.context.state !== 'running') {
+                initializeSynth();
+            }
+             // Only proceed with timer logic if audio context potentially started
+             // or if synth already exists
+            if (Tone.context.state === 'running' || synth) {
+                 if (isRunning) {
+                    pauseTimer();
+                 } else {
+                    startTimer();
+                 }
+            } else if (!soundEnabled) {
+                 // If sound is disabled, allow timer to start regardless of audio context
+                 if (isRunning) {
+                     pauseTimer();
+                 } else {
+                     startTimer();
+                 }
+            } else {
+                 // If sound enabled but context not running, prompt user
+                 showMessage("Click again to start timer (audio needs interaction)");
+                 // Try initializing again on the next click
+            }
+        });
+
+
+        resetButton.addEventListener('click', resetTimer);
+        toggleSoundButton.addEventListener('click', toggleSound);
+        setTimesButton.addEventListener('click', applyNewTimes); // Listener for the new button
+
+        // --- Initial Setup ---
+        // Load Lucide icons dynamically - needed after DOM is ready
+        function loadLucideIcons() {
+            const iconElements = document.querySelectorAll('.lucide'); // Use class selector
+            iconElements.forEach(el => {
+                const iconName = el.getAttribute('data-lucide');
+                 if (iconName) {
+                    // This relies on the font's ligature feature or character mapping
+                    el.textContent = iconName;
+                 }
+            });
+        }
+
+        // Initialize the display, set initial input values, and load icons when the window loads
+        window.onload = () => {
+            // Set initial timer value based on default workDuration
+            totalSeconds = workDuration * 60;
+            updateDisplay();
+
+            // Set initial values for the input fields
+            workDurationInput.value = workDuration;
+            shortBreakDurationInput.value = shortBreakDuration;
+            longBreakDurationInput.value = longBreakDuration;
+
+            loadLucideIcons(); // Make sure icons render correctly
+             console.log("Adjustable Timer ready. Set times or click Start.");
+        };
+
+    </script>
+</body>
+</html>
