@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Tomato Timer - Night Mode</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='55' r='40' fill='%23a5b4fc'/%3E%3Cpath d='M50,15 Q45,30 35,35 Q45,35 50,45 Q55,35 65,35 Q55,30 50,15 Z' fill='%234338ca'/%3E%3C/svg%3E">
     <style>
       @font-face {
         font-family: 'LucideIcons';
@@ -35,16 +38,13 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        /* --- NIGHT THEME COLOR --- */
         background-color: rgba(30, 41, 59, 0.92); /* Dark Slate Blue (slate-800 with opacity) */
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         z-index: 9999;
-        /* --- NIGHT THEME COLOR --- */
         color: #e0e7ff; /* Lighter Lavender/Indigo text (indigo-100) */
-        /* --- NIGHT THEME COLOR --- */
         text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Adjusted shadow for dark bg */
         padding: 1rem;
         box-sizing: border-box;
@@ -55,7 +55,6 @@
         top: -15px;
         width: 50px;
         height: 30px;
-        /* --- NIGHT THEME COLOR --- */
         background-color: #14532d; /* Darker Green (green-900) */
         border-radius: 50% 50% 0 0 / 100% 100% 0 0;
         transform: rotate(-15deg);
@@ -63,11 +62,8 @@
       }
        /* Button styling - Night Theme */
       .control-button {
-        /* --- NIGHT THEME COLOR --- */
         background-color: rgba(71, 85, 105, 0.4); /* Muted Slate (slate-600 with opacity) */
-        /* --- NIGHT THEME COLOR --- */
         border: 2px solid #94a3b8; /* Lighter Slate border (slate-400) */
-        /* --- NIGHT THEME COLOR --- */
         color: #e0e7ff; /* Match text color (indigo-100) */
         padding: 0.5rem 1rem;
         margin: 0 0.25rem;
@@ -78,14 +74,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        /* --- NIGHT THEME COLOR --- */
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Adjusted shadow */
         font-size: 0.8rem;
       }
       .control-button:hover {
-        /* --- NIGHT THEME COLOR --- */
         background-color: rgba(100, 116, 139, 0.5); /* Lighter Slate on hover (slate-500 with opacity) */
-        /* --- NIGHT THEME COLOR --- */
         border-color: #cbd5e1; /* Even lighter border (slate-300) */
       }
        .control-button:active {
@@ -98,9 +91,7 @@
           top: 15px;
           left: 50%;
           transform: translateX(-50%);
-          /* --- NIGHT THEME COLOR --- */
           background-color: rgba(15, 23, 42, 0.85); /* Very Dark Blue (slate-900 with opacity) */
-          /* --- NIGHT THEME COLOR --- */
           color: #cbd5e1; /* Light Slate text (slate-300) */
           padding: 8px 15px;
           border-radius: 5px;
@@ -112,7 +103,6 @@
       /* Settings Input Styling - Night Theme */
       .settings-container {
           margin-top: 1.5rem;
-          /* --- NIGHT THEME COLOR --- */
           background-color: rgba(0, 0, 0, 0.2); /* Darker transparent black */
           padding: 1rem;
           border-radius: 0.5rem;
@@ -128,18 +118,14 @@
           margin-right: 0.25rem;
           text-shadow: none;
           white-space: nowrap;
-          /* --- NIGHT THEME COLOR --- */
           color: #cbd5e1; /* Light Slate label (slate-300) */
       }
       .settings-container input[type="number"] {
           width: 4rem;
           padding: 0.25rem 0.5rem;
           border-radius: 0.25rem;
-          /* --- NIGHT THEME COLOR --- */
           border: 1px solid #475569; /* Medium Slate border (slate-600) */
-          /* --- NIGHT THEME COLOR --- */
           background-color: rgba(51, 65, 85, 0.5); /* Darker Slate bg (slate-700 with opacity) */
-          /* --- NIGHT THEME COLOR --- */
           color: #e0e7ff; /* Match main text color (indigo-100) */
           text-align: center;
           font-family: 'Press Start 2P', cursive;
@@ -212,7 +198,7 @@
         const toggleSoundButton = document.getElementById('toggle-sound');
         const soundIcon = document.getElementById('sound-icon');
         const messageBox = document.getElementById('message-box');
-        // New Settings Elements
+        // Settings Elements
         const workDurationInput = document.getElementById('work-duration');
         const shortBreakDurationInput = document.getElementById('short-break-duration');
         const longBreakDurationInput = document.getElementById('long-break-duration');
@@ -220,86 +206,75 @@
 
 
         // --- Timer State ---
-        let timerInterval = null; // Holds the interval ID
-        let totalSeconds = 25 * 60; // Initial work time in seconds (will be updated)
+        let timerInterval = null;
+        let totalSeconds = 25 * 60;
         let isRunning = false;
-        let isWorkTime = true; // Tracks if it's work or break time
+        let isWorkTime = true;
         let cyclesCompleted = 0;
-        let soundEnabled = true; // Sound is on by default
+        let soundEnabled = true;
 
         // --- Timer Settings (in minutes) ---
-        // Use 'let' so they can be changed
         let workDuration = 25;
         let shortBreakDuration = 5;
         let longBreakDuration = 15;
-        const CYCLES_BEFORE_LONG_BREAK = 4; // This could also be made adjustable
+        const CYCLES_BEFORE_LONG_BREAK = 4;
 
         // --- Sound Synthesis (using Tone.js) ---
-        let synth = null; // Initialize synth later to ensure user interaction
+        let synth = null;
 
-        // Function to initialize the synth (requires user interaction)
+        // Function to initialize the synth
         function initializeSynth() {
             if (synth || typeof Tone === 'undefined') return;
             if (Tone.context.state !== 'running') {
-                 try {
-                    Tone.start();
-                 } catch (e) {
-                     console.warn("Tone.start() failed, likely needs user interaction first.", e);
-                     return;
-                 }
+                 try { Tone.start(); } catch (e) { console.warn("Tone.start() failed.", e); return; }
             }
              if (Tone.context.state === 'running') {
                 synth = new Tone.Synth({
-                    oscillator: { type: 'triangle' }, // Using triangle for a softer sound maybe?
-                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.8 } // Slightly adjusted envelope
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.8 }
                 }).toDestination();
-             } else {
-                 console.warn("Audio context not running, synth not created.");
-             }
+             } else { console.warn("Audio context not running."); }
         }
-
 
         // Function to play notification sound
         function playNotificationSound() {
             if (soundEnabled && synth && Tone.context.state === 'running') {
                 try {
-                    // Play slightly lower notes for night mode maybe? B3 and F#4
                     synth.triggerAttackRelease("B3", "8n", Tone.now());
                     setTimeout(() => {
                          if (synth && Tone.context.state === 'running') {
                             synth.triggerAttackRelease("F#4", "8n", Tone.now() + 0.2);
                          }
                     }, 200);
-                } catch (error) {
-                    console.error("Error playing sound:", error);
-                }
+                } catch (error) { console.error("Error playing sound:", error); }
             } else if (soundEnabled && !synth) {
-                console.warn("Sound enabled, but synth not initialized or audio context not running.");
+                console.warn("Sound enabled, but synth not initialized.");
                 initializeSynth();
             }
         }
 
         // --- Utility Functions ---
-
-        // Format seconds into MM:SS format
         function formatTime(seconds) {
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
             return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
         }
 
-        // Update the time display on the page
         function updateDisplay() {
             timeDisplay.textContent = formatTime(totalSeconds);
+            // Update document title with time remaining when timer is running
+            if (isRunning) {
+                document.title = `${formatTime(totalSeconds)} - ${isWorkTime ? 'Work' : 'Break'}`;
+            } else {
+                 document.title = "Focus Timer - Night Mode"; // Reset title when paused/stopped
+            }
         }
 
-        // Show a temporary message
+
         function showMessage(message) {
             messageBox.textContent = message;
             messageBox.style.display = 'block';
-            if (messageBox.timeoutId) {
-                clearTimeout(messageBox.timeoutId);
-            }
+            if (messageBox.timeoutId) clearTimeout(messageBox.timeoutId);
             messageBox.timeoutId = setTimeout(() => {
                 messageBox.style.display = 'none';
                 messageBox.timeoutId = null;
@@ -307,8 +282,6 @@
         }
 
         // --- Timer Logic ---
-
-        // Function called every second when the timer is running
         function tick() {
             if (totalSeconds <= 0) {
                 clearInterval(timerInterval);
@@ -318,14 +291,12 @@
                 switchSession();
             } else {
                 totalSeconds--;
-                updateDisplay();
+                updateDisplay(); // updateDisplay now also updates document title
             }
         }
 
-        // Switch between work and break sessions
         function switchSession() {
             isWorkTime = !isWorkTime;
-
             if (isWorkTime) {
                 cyclesCompleted++;
                 cycleCountDisplay.textContent = `Cycles completed: ${cyclesCompleted}`;
@@ -343,33 +314,35 @@
                      showMessage("Time for a short break!");
                 }
             }
-
             updateDisplay();
-             pauseTimer(); // Ensure timer is paused after switching
-             startPauseIcon.setAttribute('data-lucide', 'play');
-             startPauseButton.setAttribute('aria-label', 'Start Timer');
+            pauseTimer(); // Pause after switching
+            startPauseIcon.setAttribute('data-lucide', 'play');
+            startPauseButton.setAttribute('aria-label', 'Start Timer');
+            document.title = "Focus Timer - Night Mode"; // Reset title on switch
         }
 
-        // Start the timer
+
         function startTimer() {
             if (!isRunning) {
-                initializeSynth(); // Ensure synth is ready
+                initializeSynth();
                 isRunning = true;
                 startPauseIcon.setAttribute('data-lucide', 'pause');
                 startPauseButton.setAttribute('aria-label', 'Pause Timer');
                 try {
                     if (timerInterval) clearInterval(timerInterval);
+                    // Update display immediately when starting
+                    updateDisplay();
                     timerInterval = setInterval(tick, 1000);
                 } catch (error) {
                     console.error("Failed to start timer interval:", error);
                     isRunning = false;
                     startPauseIcon.setAttribute('data-lucide', 'play');
                     startPauseButton.setAttribute('aria-label', 'Start Timer');
+                    document.title = "Focus Timer - Night Mode"; // Reset title on error
                 }
             }
         }
 
-        // Pause the timer
         function pauseTimer() {
             if (isRunning || timerInterval) {
                 isRunning = false;
@@ -377,12 +350,15 @@
                 timerInterval = null;
                 startPauseIcon.setAttribute('data-lucide', 'play');
                 startPauseButton.setAttribute('aria-label', 'Start Timer');
+                 // Update display to show paused time, but reset title
+                updateDisplay(); // Keep time displayed
+                document.title = "Focus Timer - Night Mode (Paused)"; // Indicate paused state in title
             }
         }
 
-        // Reset the timer
+
         function resetTimer() {
-            pauseTimer();
+            pauseTimer(); // Pauses and resets title
             if (isWorkTime) {
                 totalSeconds = workDuration * 60;
                 timerStatus.textContent = "Work Time";
@@ -395,42 +371,37 @@
                     totalSeconds = shortBreakDuration * 60;
                 }
             }
-            updateDisplay();
+            updateDisplay(); // Update time display
+             document.title = "Focus Timer - Night Mode"; // Ensure title is reset
         }
 
-        // Apply new timer durations
+
         function applyNewTimes() {
             const newWork = parseInt(workDurationInput.value, 10);
             const newShort = parseInt(shortBreakDurationInput.value, 10);
             const newLong = parseInt(longBreakDurationInput.value, 10);
 
-            if (isNaN(newWork) || newWork < 1 ||
-                isNaN(newShort) || newShort < 1 ||
-                isNaN(newLong) || newLong < 1) {
+            if (isNaN(newWork) || newWork < 1 || isNaN(newShort) || newShort < 1 || isNaN(newLong) || newLong < 1) {
                 showMessage("Error: Durations must be positive numbers.");
                 workDurationInput.value = workDuration;
                 shortBreakDurationInput.value = shortBreakDuration;
                 longBreakDurationInput.value = longBreakDuration;
                 return;
             }
-
             workDuration = newWork;
             shortBreakDuration = newShort;
             longBreakDuration = newLong;
-
             showMessage("Timer durations updated!");
-            resetTimer();
+            resetTimer(); // Resets timer and updates display/title
         }
 
-
-        // Toggle sound on/off
         function toggleSound() {
             soundEnabled = !soundEnabled;
             if (soundEnabled) {
                 soundIcon.setAttribute('data-lucide', 'volume-2');
                 toggleSoundButton.setAttribute('aria-label', 'Mute Sound');
                  showMessage("Sound enabled");
-                 initializeSynth(); // Ensure synth is ready
+                 initializeSynth();
             } else {
                 soundIcon.setAttribute('data-lucide', 'volume-x');
                 toggleSoundButton.setAttribute('aria-label', 'Unmute Sound');
@@ -440,18 +411,10 @@
 
         // --- Event Listeners ---
         startPauseButton.addEventListener('click', () => {
-            if (!synth && Tone.context.state !== 'running') {
-                initializeSynth();
-            }
-            if (Tone.context.state === 'running' || synth || !soundEnabled) { // Allow start if sound disabled
-                 if (isRunning) {
-                    pauseTimer();
-                 } else {
-                    startTimer();
-                 }
-            } else {
-                 showMessage("Click again to start timer (audio needs interaction)");
-            }
+            if (!synth && Tone.context.state !== 'running') { initializeSynth(); }
+            if (Tone.context.state === 'running' || synth || !soundEnabled) {
+                 if (isRunning) { pauseTimer(); } else { startTimer(); }
+            } else { showMessage("Click again to start timer (audio needs interaction)"); }
         });
 
         resetButton.addEventListener('click', resetTimer);
@@ -463,20 +426,19 @@
             const iconElements = document.querySelectorAll('.lucide');
             iconElements.forEach(el => {
                 const iconName = el.getAttribute('data-lucide');
-                 if (iconName) {
-                    el.textContent = iconName;
-                 }
+                 if (iconName) { el.textContent = iconName; }
             });
         }
 
         window.onload = () => {
             totalSeconds = workDuration * 60;
-            updateDisplay();
+            updateDisplay(); // Initial display update
             workDurationInput.value = workDuration;
             shortBreakDurationInput.value = shortBreakDuration;
             longBreakDurationInput.value = longBreakDuration;
             loadLucideIcons();
-             console.log("Adjustable Timer (Night Mode) ready.");
+            document.title = "Focus Timer - Night Mode"; // Set initial title
+            console.log("Adjustable Timer (Night Mode) with Favicon ready.");
         };
 
     </script>
